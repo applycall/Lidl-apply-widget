@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lidl Job Application Assistant</title>
+    <style>
+        .widget-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+        }
+        .widget-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .lidl-logo {
+            color: #0050aa;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group input[readonly] {
+            background-color: #f5f5f5;
+            color: #666;
+        }
+        .job-title-btn {
+            width: 100%;
+            padding: 12px;
+            background: #0050aa;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: left;
+            position: relative;
+        }
+        .job-title-btn:hover {
+            background: #003d82;
+        }
+        .job-title-btn::after {
+            content: '▼';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .url-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .url-input {
+            flex: 1;
+        }
+        .external-link {
+            color: #0050aa;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 8px;
+            border: 1px solid #0050aa;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            box-sizing: border-box;
+        }
+        .external-link:hover {
+            background: #0050aa;
+            color: white;
+        }
+        .file-upload {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        .file-upload:hover {
+            border-color: #0050aa;
+        }
+        .file-upload.dragover {
+            border-color: #0050aa;
+            background-color: #f0f8ff;
+        }
+        .submit-btn {
+            background: #0050aa;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .submit-btn:hover {
+            background: #003d82;
+        }
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: none;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        .job-option {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .job-option:hover {
+            background: #e9ecef;
+            border-color: #0050aa;
+        }
+        .job-option.selected {
+            background: #0050aa;
+            color: white;
+            border-color: #0050aa;
+        }
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <div class="lidl-logo">LIDL</div>
+            <h2>Job Application Assistant</h2>
+            <p>Apply for Customer Assistant or Retail Shift Manager positions</p>
+        </div>
+        
+        <form id="jobApplicationForm">
+            <!-- Personal Information -->
+            <div class="form-group">
+                <label for="firstName">First Name *</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="lastName">Last Name *</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+            
+            <!-- Job Information -->
+            <div class="form-group">
+                <label for="jobTitle">Job Title *</label>
+                <button type="button" class="job-title-btn" id="jobTitleBtn">
+                    Select Job Title
+                </button>
+                <input type="hidden" id="jobTitle" name="jobTitle" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="company">Company</label>
+                <input type="text" id="company" name="company" value="Lidl" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="jobUrl">Job URL</label>
+                <div class="url-container">
+                    <input type="url" id="jobUrl" name="jobUrl" class="url-input" readonly>
+                    <a href="#" id="externalLink" class="external-link" target="_blank" title="View job details">
+                        ↗
+                    </a>
+                </div>
+            </div>
+            
+            <!-- CV Upload -->
+            <div class="form-group">
+                <label for="cvUpload">Upload CV/Resume *</label>
+                <div class="file-upload" id="fileUpload">
+                    <p>Click to select or drag and drop your CV/Resume</p>
+                    <p><small>Supported formats: PDF, DOC, DOCX (Max 5MB)</small></p>
+                    <input type="file" id="cvUpload" name="cvUpload" accept=".pdf,.doc,.docx" style="display: none;" required>
+                </div>
+                <div id="fileName" style="margin-top: 10px; font-weight: bold; color: #0050aa;"></div>
+            </div>
+            
+            <div class="status-message" id="statusMessage"></div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit Application
+            </button>
+        </form>
+    </div>
+    
+    <!-- Job Title Selection Modal -->
+    <div id="jobModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Job Title</h3>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <button type="button" class="job-option" data-job="Customer Assistant" 
+                        data-url="https://ea-lidl.cfapps.eu20.hana.ondemand.com/easyapply/index.html?ReqId=587674&sap-language=en_GB"
+                        data-info="https://careers.lidl.co.uk/stores/customer-assistant">
+                    <strong>Customer Assistant</strong><br>
+                    <small>Passionate, conscientious customer service role</small>
+                </button>
+                
+                <button type="button" class="job-option" data-job="Retail Shift Manager" 
+                        data-url="https://ea-lidl.cfapps.eu20.hana.ondemand.com/easyapply/index.html?ReqId=588893&sap-language=en_GB"
+                        data-info="https://careers.lidl.co.uk/stores/retail-shift-manager">
+                    <strong>Retail Shift Manager</strong><br>
+                    <small>Leadership role managing store operations and team</small>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Job Title Modal Functionality
+        const jobTitleBtn = document.getElementById('jobTitleBtn');
+        const jobModal = document.getElementById('jobModal');
+        const closeModal = document.getElementById('closeModal');
+        const jobOptions = document.querySelectorAll('.job-option');
+        const jobTitleInput = document.getElementById('jobTitle');
+        const jobUrlInput = document.getElementById('jobUrl');
+        const externalLink = document.getElementById('externalLink');
+        
+        // Open modal
+        jobTitleBtn.addEventListener('click', () => {
+            jobModal.style.display = 'block';
+        });
+        
+        // Close modal
+        closeModal.addEventListener('click', () => {
+            jobModal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === jobModal) {
+                jobModal.style.display = 'none';
+            }
+        });
+        
+        // Job selection (around line 350)
+        jobOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove previous selection
+                jobOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Select current option
+                option.classList.add('selected');
+                
+                // Update form fields
+                const jobTitle = option.dataset.job;
+                const jobUrl = option.dataset.url;
+                const infoUrl = option.dataset.info;
+                
+                jobTitleInput.value = jobTitle;  // ← Make sure this line exists
+                jobTitleBtn.textContent = jobTitle;
+                jobUrlInput.value = jobUrl;
+                externalLink.href = infoUrl;
+                
+                // ✅ ADD THIS: Trigger validation update
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = !validateForm();
+                
+                // Close modal
+                jobModal.style.display = 'none';
+            });
+        });
+        
+        // File Upload Functionality
+        const fileUpload = document.getElementById('fileUpload');
+        const cvUpload = document.getElementById('cvUpload');
+        const fileName = document.getElementById('fileName');
+        
+        // Click to upload
+        fileUpload.addEventListener('click', () => {
+            cvUpload.click();
+        });
+        
+        // File selection
+        cvUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                handleFileSelection(file);
+            }
+        });
+        
+        // Drag and drop
+        fileUpload.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+        
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+        
+        fileUpload.addEventListener('drop', (event) => {
+            event.preventDefault();
+            fileUpload.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                handleFileSelection(file);
+                
+                // Update the file input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                cvUpload.files = dataTransfer.files;
+            }
+        });
+        
+        function handleFileSelection(file) {
+            // Validate file type
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                showMessage('Please select a PDF, DOC, or DOCX file.', 'error');
+                return;
+            }
+            
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showMessage('File size must be less than 5MB.', 'error');
+                return;
+            }
+            
+            // Show selected file
+            fileName.textContent = `Selected: ${file.name}`;
+            showMessage('File uploaded successfully!', 'success');
+        }
+        
+        // Form Submission (around line 438)
+        document.getElementById('jobApplicationForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                // Collect form data
+                const formData = new FormData();
+                formData.append('firstName', document.getElementById('firstName').value);
+                formData.append('lastName', document.getElementById('lastName').value);
+                formData.append('email', document.getElementById('email').value);
+                formData.append('phone', document.getElementById('phone').value);
+                formData.append('jobTitle', document.getElementById('jobTitle').value);
+                formData.append('company', document.getElementById('company').value);
+                formData.append('jobUrl', document.getElementById('jobUrl').value);
+                
+                const cvFile = document.getElementById('cvUpload').files[0];
+                if (cvFile) {
+                    formData.append('cvFile', cvFile);
+                }
+                
+                // Submit with CORS-friendly options
+                const response = await fetch('http://localhost:5000/api/complete-application', {
+                    method: 'POST',
+                    mode: 'cors',           // ✅ Explicitly enable CORS
+                    credentials: 'omit',    // ✅ Don't send credentials
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    showMessage('Application submitted successfully! We will contact you soon.', 'success');
+                    document.getElementById('jobApplicationForm').reset();
+                    fileName.textContent = '';
+                    jobTitleBtn.textContent = 'Select Job Title';
+                    jobUrlInput.value = '';
+                    externalLink.href = '#';
+                } else {
+                    throw new Error('Submission failed');
+                }
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                showMessage('There was an error submitting your application. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Application';
+            }
+        });
+        
+        function showMessage(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Form validation
+        // Add this debug function after line 490
+        function debugValidation() {
+            const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'jobTitle'];
+            const cvFile = document.getElementById('cvUpload').files[0];
+            
+            console.log('=== VALIDATION DEBUG ===');
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const value = field ? field.value.trim() : 'ELEMENT NOT FOUND';
+                console.log(`${fieldId}: "${value}" (${value ? '✅ VALID' : '❌ EMPTY'})`);
+            });
+            console.log(`CV File: ${cvFile ? cvFile.name : '❌ NO FILE SELECTED'}`);
+            console.log(`Form Valid: ${validateForm()}`);
+            console.log('========================');
+        }
+        
+        // Add debug button click handler
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            debugValidation();
+        });
+        
+        // Real-time validation
+        // Comment out or modify these lines around line 500:
+        // document.getElementById('submitBtn').disabled = true;  // ← Comment this out
+        // Or change the real-time validation to:
+        document.querySelectorAll('input[required]').forEach(input => {
+        input.addEventListener('input', () => {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = false;  // ← Always enable for testing
+        });
+        });
+        
+        // Initial validation state
+        document.getElementById('submitBtn').disabled = true;
+    </script>
+</body>
+</html>
