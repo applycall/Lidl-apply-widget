@@ -347,24 +347,24 @@
         
         async function loadJobsData() {
             try {
-                // Try relative path first (works with HTTP server)
-                let response = await fetch('./lidl_jobs_data.json');
-                if (!response.ok) {
-                    // Fallback to root path
-                    response = await fetch('/lidl_jobs_data.json');
-                }
+                // Use the same ngrok base URL for jobs data
+                let response = await fetch('https://5e38ce0510b9.ngrok-free.app/api/jobs', {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
-                jobsData = data; // Store the data in the global variable
-                populateJobTitleFilter(); // Populate the filter after loading data
-                displayJobs(Object.values(jobsData)); // Display all jobs initially
-                return data;
+                jobsData = data;
+                populateJobTitleFilter();
+                displayJobs(Object.values(jobsData));
             } catch (error) {
                 console.error('Error loading jobs data:', error);
-                document.getElementById('jobTitleFilter').innerHTML = '<option value="">Error loading job positions. Please refresh the page</option>';
-                return null;
+                document.getElementById('job-error-message').textContent = 'Unable to load job data. Please check if the server is running.';
             }
         }
         
@@ -625,7 +625,7 @@
                     formData.append('cvFile', cvFile);
                 }
                 
-                const response = await fetch('http://localhost:5000/api/complete-application', {
+                const response = await fetch('https://5e38ce0510b9.ngrok-free.app/api/complete-application', {
                     method: 'POST',
                     mode: 'cors',
                     credentials: 'omit',
