@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lidl Job Application Assistant</title>
+    <!-- Add reCAPTCHA v3 script -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfbytArAAAAAJIYUKrkRgRAOlGzCktmqB-WoYrV"></script>
     <style>
         .widget-container {
             max-width: 600px;
@@ -43,53 +45,103 @@
             background-color: #f5f5f5;
             color: #666;
         }
-        .job-title-btn {
-            width: 100%;
-            padding: 12px;
-            background: #0050aa;
-            color: white;
-            border: none;
+        .job-selection-section {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #0050aa;
+        }
+        .job-selection-title {
+            color: #0050aa;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .search-input {
+            margin-bottom: 10px;
+        }
+        .job-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
             border-radius: 4px;
+            background: white;
+        }
+        .job-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
             cursor: pointer;
-            font-size: 16px;
-            text-align: left;
-            position: relative;
+            transition: background-color 0.3s;
         }
-        .job-title-btn:hover {
-            background: #003d82;
+        .job-item:hover {
+            background-color: #f0f8ff;
         }
-        .job-title-btn::after {
-            content: '▼';
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+        .job-item.selected {
+            background-color: #0050aa;
+            color: white;
         }
-        .url-container {
+        .job-item:last-child {
+            border-bottom: none;
+        }
+        .job-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .job-details {
+            font-size: 12px;
+            color: #666;
+        }
+        .job-item.selected .job-details {
+            color: #ccc;
+        }
+        .selected-job-info {
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border: 1px solid #4caf50;
+        }
+        .job-details-box {
+            background: #f8f9fa;
+            border: 2px solid #0050aa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .job-details-header {
+            color: #0050aa;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #0050aa;
+            padding-bottom: 10px;
+        }
+        .job-detail-item {
+            margin-bottom: 10px;
             display: flex;
-            align-items: center;
-            gap: 8px;
+            align-items: flex-start;
         }
-        .url-input {
+        .job-detail-label {
+            font-weight: bold;
+            color: #333;
+            min-width: 120px;
+            margin-right: 10px;
+        }
+        .job-detail-value {
+            color: #555;
             flex: 1;
         }
-        .external-link {
+        .job-url-link {
             color: #0050aa;
             text-decoration: none;
-            font-size: 18px;
-            padding: 8px;
-            border: 1px solid #0050aa;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 40px;
-            height: 40px;
-            box-sizing: border-box;
+            word-break: break-all;
         }
-        .external-link:hover {
-            background: #0050aa;
-            color: white;
+        .job-url-link:hover {
+            text-decoration: underline;
         }
         .file-upload {
             border: 2px dashed #ccc;
@@ -124,64 +176,6 @@
             background: #ccc;
             cursor: not-allowed;
         }
-        
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: none;
-            border-radius: 8px;
-            width: 80%;
-            max-width: 400px;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .close {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close:hover {
-            color: #000;
-        }
-        .job-option {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: left;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        .job-option:hover {
-            background: #e9ecef;
-            border-color: #0050aa;
-        }
-        .job-option.selected {
-            background: #0050aa;
-            color: white;
-            border-color: #0050aa;
-        }
         .status-message {
             padding: 10px;
             margin: 10px 0;
@@ -198,6 +192,11 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -205,10 +204,81 @@
         <div class="widget-header">
             <div class="lidl-logo">LIDL</div>
             <h2>Job Application Assistant</h2>
-            <p>Apply for Customer Assistant or Retail Shift Manager positions</p>
+            <p>Select from available positions and apply directly</p>
         </div>
         
         <form id="jobApplicationForm">
+            <!-- Job Selection Section -->
+            <div class="job-selection-section">
+                <div class="job-selection-title">Step 1: Select Your Position</div>
+                
+                <div class="form-group">
+                    <label for="jobTitleFilter">Filter by Job Title</label>
+                    <select id="jobTitleFilter" class="search-input">
+                        <option value="">All Job Titles</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="jobTitleSearch">Search Job Titles:</label>
+                    <input type="text" id="jobTitleSearch" placeholder="Type to search job titles...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="locationFilter">Search Location (City or Store):</label>
+                    <input type="text" id="locationFilter" placeholder="Enter city or store name...">
+                </div>
+                
+                <div class="form-group">
+                    <label>Available Positions:</label>
+                    <div id="jobList" class="job-list">
+                        <div class="loading">Loading available positions...</div>
+                    </div>
+                </div>
+                
+                <div id="selectedJobInfo" class="selected-job-info" style="display: none;">
+                    <strong>Selected Position:</strong><br>
+                    <span id="selectedJobDisplay"></span>
+                </div>
+                
+                <!-- Hidden fields for selected job data -->
+                <input type="hidden" id="jobTitle" name="jobTitle" required>
+                <input type="hidden" id="jobReferenceId" name="jobReferenceId" required>
+                <input type="hidden" id="jobUrl" name="jobUrl" required>
+                <input type="hidden" id="company" name="company" value="Lidl">
+            </div>
+            
+            <!-- Job Details Display Box -->
+            <div id="jobDetailsBox" class="job-details-box" style="display: none;">
+                <div class="job-details-header">Job Selected</div>
+                <div class="job-detail-item">
+                    <span class="job-detail-label">Position:</span>
+                    <span class="job-detail-value" id="detailJobTitle"></span>
+                </div>
+                <div class="job-detail-item">
+                    <span class="job-detail-label">Location:</span>
+                    <span class="job-detail-value" id="detailJobLocation"></span>
+                </div>
+                <div class="job-detail-item">
+                    <span class="job-detail-label">Reference ID:</span>
+                    <span class="job-detail-value" id="detailJobReference"></span>
+                </div>
+                <div class="job-detail-item">
+                    <span class="job-detail-label">Company:</span>
+                    <span class="job-detail-value">Lidl</span>
+                </div>
+                <div class="job-detail-item">
+                    <span class="job-detail-label">Application URL:</span>
+                    <span class="job-detail-value">
+                        <a href="#" id="detailJobUrl" class="job-url-link" target="_blank">View Job Posting</a>
+                    </span>
+                </div>
+                <div class="job-detail-item">
+                    <span class="job-detail-label">Last Updated:</span>
+                    <span class="job-detail-value" id="detailJobUpdated"></span>
+                </div>
+            </div>
+            
             <!-- Personal Information -->
             <div class="form-group">
                 <label for="firstName">First Name *</label>
@@ -230,30 +300,6 @@
                 <input type="tel" id="phone" name="phone" required>
             </div>
             
-            <!-- Job Information -->
-            <div class="form-group">
-                <label for="jobTitle">Job Title *</label>
-                <button type="button" class="job-title-btn" id="jobTitleBtn">
-                    Select Job Title
-                </button>
-                <input type="hidden" id="jobTitle" name="jobTitle" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="company">Company</label>
-                <input type="text" id="company" name="company" value="Lidl" readonly>
-            </div>
-            
-            <div class="form-group">
-                <label for="jobUrl">Job URL</label>
-                <div class="url-container">
-                    <input type="url" id="jobUrl" name="jobUrl" class="url-input" readonly>
-                    <a href="#" id="externalLink" class="external-link" target="_blank" title="View job details">
-                        ↗
-                    </a>
-                </div>
-            </div>
-            
             <!-- CV Upload -->
             <div class="form-group">
                 <label for="cvUpload">Upload CV/Resume *</label>
@@ -267,206 +313,333 @@
             
             <div class="status-message" id="statusMessage"></div>
             
-            <button type="submit" class="submit-btn" id="submitBtn">
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>
                 Submit Application
             </button>
         </form>
     </div>
     
-    <!-- Job Title Selection Modal -->
-    <div id="jobModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Select Job Title</h3>
-                <span class="close" id="closeModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <button type="button" class="job-option" data-job="Customer Assistant" 
-                        data-url="https://ea-lidl.cfapps.eu20.hana.ondemand.com/easyapply/index.html?ReqId=587674&sap-language=en_GB"
-                        data-info="https://careers.lidl.co.uk/stores/customer-assistant">
-                    <strong>Customer Assistant</strong><br>
-                    <small>Passionate, conscientious customer service role</small>
-                </button>
-                
-                <button type="button" class="job-option" data-job="Retail Shift Manager" 
-                        data-url="https://ea-lidl.cfapps.eu20.hana.ondemand.com/easyapply/index.html?ReqId=588893&sap-language=en_GB"
-                        data-info="https://careers.lidl.co.uk/stores/retail-shift-manager">
-                    <strong>Retail Shift Manager</strong><br>
-                    <small>Leadership role managing store operations and team</small>
-                </button>
-            </div>
-        </div>
-    </div>
-    
     <script>
-        // Job Title Modal Functionality
-        const jobTitleBtn = document.getElementById('jobTitleBtn');
-        const jobModal = document.getElementById('jobModal');
-        const closeModal = document.getElementById('closeModal');
-        const jobOptions = document.querySelectorAll('.job-option');
-        const jobTitleInput = document.getElementById('jobTitle');
-        const jobUrlInput = document.getElementById('jobUrl');
-        const externalLink = document.getElementById('externalLink');
+        let jobsData = {};
+        let filteredJobs = [];
+        let selectedJob = null;
         
-        // Open modal
-        jobTitleBtn.addEventListener('click', () => {
-            jobModal.style.display = 'block';
+        // Load jobs data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadJobsData();
+            setupEventListeners();
         });
         
-        // Close modal
-        closeModal.addEventListener('click', () => {
-            jobModal.style.display = 'none';
-        });
-        
-        // Close modal when clicking outside
-        window.addEventListener('click', (event) => {
-            if (event.target === jobModal) {
-                jobModal.style.display = 'none';
+        async function loadJobsData() {
+            try {
+                const response = await fetch('/lidl_jobs_data.json');
+                if (response.ok) {
+                    jobsData = await response.json();
+                    populateJobTitleFilter();
+                    displayJobs(Object.values(jobsData));
+                } else {
+                    // Fallback: try to load from relative path
+                    const fallbackResponse = await fetch('./lidl_jobs_data.json');
+                    if (fallbackResponse.ok) {
+                        jobsData = await fallbackResponse.json();
+                        populateJobTitleFilter();
+                        displayJobs(Object.values(jobsData));
+                    } else {
+                        throw new Error('Could not load jobs data');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading jobs data:', error);
+                document.getElementById('jobList').innerHTML = 
+                    '<div class="loading">Error loading job positions. Please refresh the page.</div>';
             }
-        });
+        }
         
-        // Job selection (around line 350)
-        jobOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                // Remove previous selection
-                jobOptions.forEach(opt => opt.classList.remove('selected'));
-                
-                // Select current option
-                option.classList.add('selected');
-                
-                // Update form fields
-                const jobTitle = option.dataset.job;
-                const jobUrl = option.dataset.url;
-                const infoUrl = option.dataset.info;
-                
-                jobTitleInput.value = jobTitle;  // ← Make sure this line exists
-                jobTitleBtn.textContent = jobTitle;
-                jobUrlInput.value = jobUrl;
-                externalLink.href = infoUrl;
-                
-                // ✅ ADD THIS: Trigger validation update
-                const submitBtn = document.getElementById('submitBtn');
-                submitBtn.disabled = !validateForm();
-                
-                // Close modal
-                jobModal.style.display = 'none';
-            });
-        });
-        
-        // File Upload Functionality
-        const fileUpload = document.getElementById('fileUpload');
-        const cvUpload = document.getElementById('cvUpload');
-        const fileName = document.getElementById('fileName');
-        
-        // Click to upload
-        fileUpload.addEventListener('click', () => {
-            cvUpload.click();
-        });
-        
-        // File selection
-        cvUpload.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                handleFileSelection(file);
-            }
-        });
-        
-        // Drag and drop
-        fileUpload.addEventListener('dragover', (event) => {
-            event.preventDefault();
-            fileUpload.classList.add('dragover');
-        });
-        
-        fileUpload.addEventListener('dragleave', () => {
-            fileUpload.classList.remove('dragover');
-        });
-        
-        fileUpload.addEventListener('drop', (event) => {
-            event.preventDefault();
-            fileUpload.classList.remove('dragover');
+        function populateJobTitleFilter() {
+            const titleFilter = document.getElementById('jobTitleFilter');
+            const uniqueTitles = [...new Set(Object.values(jobsData).map(job => job.title))].sort();
             
-            const files = event.dataTransfer.files;
-            if (files.length > 0) {
-                const file = files[0];
-                handleFileSelection(file);
-                
-                // Update the file input
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                cvUpload.files = dataTransfer.files;
+            uniqueTitles.forEach(title => {
+                const option = document.createElement('option');
+                option.value = title;
+                option.textContent = title;
+                titleFilter.appendChild(option);
+            });
+        }
+        
+        function displayJobs(jobs) {
+            const jobList = document.getElementById('jobList');
+            
+            if (jobs.length === 0) {
+                jobList.innerHTML = '<div class="loading">No positions match your search criteria.</div>';
+                return;
             }
-        });
+            
+            jobList.innerHTML = '';
+            jobs.forEach(job => {
+                const jobItem = document.createElement('div');
+                jobItem.className = 'job-item';
+                jobItem.dataset.referenceId = job.reference_id;
+                
+                const locationText = job.city ? 
+                    `${job.business_partner_id} - ${job.city}${job.postcode ? ' ' + job.postcode : ''}` : 
+                    job.business_partner_id;
+                
+                jobItem.innerHTML = `
+                    <div class="job-title">${job.title}</div>
+                    <div class="job-details">
+                        Location: ${locationText}<br>
+                        Reference: ${job.reference_id}
+                    </div>
+                `;
+                
+                jobItem.addEventListener('click', () => selectJob(job, jobItem));
+                jobList.appendChild(jobItem);
+            });
+        }
+        
+        function selectJob(job, jobElement) {
+            // Remove previous selection
+            document.querySelectorAll('.job-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Select current job
+            jobElement.classList.add('selected');
+            selectedJob = job;
+            
+            // Update hidden form fields
+            document.getElementById('jobTitle').value = job.title;
+            document.getElementById('jobReferenceId').value = job.reference_id;
+            document.getElementById('jobUrl').value = job.recruiting_url;
+            
+            // Display selected job info
+            const locationText = job.city ? 
+                `${job.business_partner_id} - ${job.city}${job.postcode ? ' ' + job.postcode : ''}` : 
+                job.business_partner_id;
+            
+            document.getElementById('selectedJobDisplay').innerHTML = `
+                <strong>${job.title}</strong><br>
+                Location: ${locationText}<br>
+                Reference ID: ${job.reference_id}
+            `;
+            
+            document.getElementById('selectedJobInfo').style.display = 'block';
+            
+            // Update detailed job information box
+            document.getElementById('detailJobTitle').textContent = job.title;
+            document.getElementById('detailJobLocation').textContent = locationText;
+            document.getElementById('detailJobReference').textContent = job.reference_id;
+            document.getElementById('detailJobUrl').href = job.recruiting_url;
+            document.getElementById('detailJobUrl').textContent = job.recruiting_url;
+            
+            // Format and display last updated date
+            const lastUpdated = job.last_updated ? new Date(job.last_updated).toLocaleDateString() : 'Not available';
+            document.getElementById('detailJobUpdated').textContent = lastUpdated;
+            
+            // Show the job details box
+            document.getElementById('jobDetailsBox').style.display = 'block';
+            
+            // Update form validation
+            updateFormValidation();
+        }
+        
+        function filterJobs() {
+            const titleFilter = document.getElementById('jobTitleFilter').value;
+            const titleSearch = document.getElementById('jobTitleSearch').value.toLowerCase();
+            const locationFilter = document.getElementById('locationFilter').value.toLowerCase();
+            
+            let filtered = Object.values(jobsData);
+            
+            // Filter by title dropdown
+            if (titleFilter) {
+                filtered = filtered.filter(job => job.title === titleFilter);
+            }
+            
+            // Filter by title search
+            if (titleSearch) {
+                filtered = filtered.filter(job => 
+                    job.title.toLowerCase().includes(titleSearch)
+                );
+            }
+            
+            // Filter by location (city or business partner ID)
+            if (locationFilter) {
+                filtered = filtered.filter(job => 
+                    (job.city && job.city.toLowerCase().includes(locationFilter)) ||
+                    job.business_partner_id.toLowerCase().includes(locationFilter) ||
+                    (job.postcode && job.postcode.toLowerCase().includes(locationFilter))
+                );
+            }
+            
+            displayJobs(filtered);
+        }
+        
+        function setupEventListeners() {
+            // Filter event listeners
+            document.getElementById('jobTitleFilter').addEventListener('change', filterJobs);
+            document.getElementById('jobTitleSearch').addEventListener('input', filterJobs);
+            document.getElementById('locationFilter').addEventListener('input', filterJobs);
+            
+            // File upload functionality
+            const fileUpload = document.getElementById('fileUpload');
+            const cvUpload = document.getElementById('cvUpload');
+            const fileName = document.getElementById('fileName');
+            
+            fileUpload.addEventListener('click', () => cvUpload.click());
+            
+            cvUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) handleFileSelection(file);
+            });
+            
+            // Drag and drop
+            fileUpload.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                fileUpload.classList.add('dragover');
+            });
+            
+            fileUpload.addEventListener('dragleave', () => {
+                fileUpload.classList.remove('dragover');
+            });
+            
+            fileUpload.addEventListener('drop', (event) => {
+                event.preventDefault();
+                fileUpload.classList.remove('dragover');
+                
+                const files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    handleFileSelection(file);
+                    
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    cvUpload.files = dataTransfer.files;
+                }
+            });
+            
+            // Form validation on input
+            document.querySelectorAll('input[required]').forEach(input => {
+                input.addEventListener('input', updateFormValidation);
+            });
+            
+            // Form submission
+            document.getElementById('jobApplicationForm').addEventListener('submit', handleFormSubmission);
+        }
         
         function handleFileSelection(file) {
-            // Validate file type
             const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            
             if (!allowedTypes.includes(file.type)) {
                 showMessage('Please select a PDF, DOC, or DOCX file.', 'error');
                 return;
             }
             
-            // Validate file size (5MB)
             if (file.size > 5 * 1024 * 1024) {
                 showMessage('File size must be less than 5MB.', 'error');
                 return;
             }
             
-            // Show selected file
-            fileName.textContent = `Selected: ${file.name}`;
+            document.getElementById('fileName').textContent = `Selected: ${file.name}`;
             showMessage('File uploaded successfully!', 'success');
+            updateFormValidation();
         }
         
-        // Form Submission (around line 438)
-        document.getElementById('jobApplicationForm').addEventListener('submit', async (event) => {
+        function updateFormValidation() {
+            const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'jobTitle'];
+            const cvFile = document.getElementById('cvUpload').files[0];
+            
+            const allFieldsValid = requiredFields.every(fieldId => {
+                const field = document.getElementById(fieldId);
+                return field && field.value.trim() !== '';
+            });
+            
+            const isValid = allFieldsValid && cvFile && selectedJob;
+            document.getElementById('submitBtn').disabled = !isValid;
+        }
+        
+        async function handleFormSubmission(event) {
             event.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
+            submitBtn.textContent = 'Verifying...';
             
             try {
-                // Collect form data
+                // Execute reCAPTCHA v3
+                const recaptchaToken = await new Promise((resolve, reject) => {
+                    grecaptcha.ready(() => {
+                        grecaptcha.execute('6LfbytArAAAAAJIYUKrkRgRAOlGzCktmqB-WoYrV', {action: 'submit_application'})
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                });
+                
+                submitBtn.textContent = 'Submitting...';
+                
                 const formData = new FormData();
                 formData.append('firstName', document.getElementById('firstName').value);
                 formData.append('lastName', document.getElementById('lastName').value);
                 formData.append('email', document.getElementById('email').value);
                 formData.append('phone', document.getElementById('phone').value);
                 formData.append('jobTitle', document.getElementById('jobTitle').value);
+                formData.append('jobReferenceId', document.getElementById('jobReferenceId').value);
                 formData.append('company', document.getElementById('company').value);
                 formData.append('jobUrl', document.getElementById('jobUrl').value);
+                // Add reCAPTCHA token
+                formData.append('recaptcha_token', recaptchaToken);
                 
                 const cvFile = document.getElementById('cvUpload').files[0];
                 if (cvFile) {
                     formData.append('cvFile', cvFile);
                 }
                 
-                // Submit with CORS-friendly options
                 const response = await fetch('http://localhost:5000/api/complete-application', {
                     method: 'POST',
-                    mode: 'cors',           // ✅ Explicitly enable CORS
-                    credentials: 'omit',    // ✅ Don't send credentials
+                    mode: 'cors',
+                    credentials: 'omit',
                     body: formData
                 });
                 
                 if (response.ok) {
                     showMessage('Application submitted successfully! We will contact you soon.', 'success');
-                    document.getElementById('jobApplicationForm').reset();
-                    fileName.textContent = '';
-                    jobTitleBtn.textContent = 'Select Job Title';
-                    jobUrlInput.value = '';
-                    externalLink.href = '#';
+                    resetForm();
                 } else {
-                    throw new Error('Submission failed');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Submission failed');
                 }
                 
             } catch (error) {
                 console.error('Submission error:', error);
-                showMessage('There was an error submitting your application. Please try again.', 'error');
+                if (error.message.includes('reCAPTCHA')) {
+                    showMessage('Security verification failed. Please try again.', 'error');
+                } else {
+                    showMessage('There was an error submitting your application. Please try again.', 'error');
+                }
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Application';
             }
-        });
+        }
+        
+        function resetForm() {
+            document.getElementById('jobApplicationForm').reset();
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('selectedJobInfo').style.display = 'none';
+            selectedJob = null;
+            
+            // Clear job selection
+            document.querySelectorAll('.job-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Reset filters and display all jobs
+            document.getElementById('jobTitleFilter').value = '';
+            document.getElementById('locationFilter').value = '';
+            displayJobs(Object.values(jobsData));
+            
+            updateFormValidation();
+        }
         
         function showMessage(message, type) {
             const statusMessage = document.getElementById('statusMessage');
@@ -474,47 +647,10 @@
             statusMessage.className = `status-message status-${type}`;
             statusMessage.style.display = 'block';
             
-            // Hide message after 5 seconds
             setTimeout(() => {
                 statusMessage.style.display = 'none';
             }, 5000);
         }
-        
-        // Form validation
-        // Add this debug function after line 490
-        function debugValidation() {
-            const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'jobTitle'];
-            const cvFile = document.getElementById('cvUpload').files[0];
-            
-            console.log('=== VALIDATION DEBUG ===');
-            requiredFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                const value = field ? field.value.trim() : 'ELEMENT NOT FOUND';
-                console.log(`${fieldId}: "${value}" (${value ? '✅ VALID' : '❌ EMPTY'})`);
-            });
-            console.log(`CV File: ${cvFile ? cvFile.name : '❌ NO FILE SELECTED'}`);
-            console.log(`Form Valid: ${validateForm()}`);
-            console.log('========================');
-        }
-        
-        // Add debug button click handler
-        document.getElementById('submitBtn').addEventListener('click', () => {
-            debugValidation();
-        });
-        
-        // Real-time validation
-        // Comment out or modify these lines around line 500:
-        // document.getElementById('submitBtn').disabled = true;  // ← Comment this out
-        // Or change the real-time validation to:
-        document.querySelectorAll('input[required]').forEach(input => {
-        input.addEventListener('input', () => {
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = false;  // ← Always enable for testing
-        });
-        });
-        
-        // Initial validation state
-        document.getElementById('submitBtn').disabled = true;
     </script>
 </body>
 </html>
