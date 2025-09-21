@@ -279,43 +279,58 @@
                 </div>
             </div>
             
-            <!-- Personal Information -->
-            <div class="form-group">
-                <label for="firstName">First Name *</label>
-                <input type="text" id="firstName" name="firstName" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="lastName">Last Name *</label>
-                <input type="text" id="lastName" name="lastName" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="email">Email Address *</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="phone">Phone Number *</label>
-                <input type="tel" id="phone" name="phone" required>
-            </div>
-            
-            <!-- CV Upload -->
-            <div class="form-group">
-                <label for="cvUpload">Upload CV/Resume *</label>
-                <div class="file-upload" id="fileUpload">
-                    <p>Click to select or drag and drop your CV/Resume</p>
-                    <p><small>Supported formats: PDF, DOC, DOCX (Max 5MB)</small></p>
-                    <input type="file" id="cvUpload" name="cvUpload" accept=".pdf,.doc,.docx" style="display: none;" required>
+            <!-- Application Method Selection -->
+            <div id="applicationMethodSection" class="job-selection-section" style="display: none;">
+                <div class="job-selection-title">Complete Application By</div>
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                    <button type="button" id="applyCallBtn" class="submit-btn" style="width: auto; padding: 15px 25px; margin: 0;">
+                        Speaking with ApplyCall on the phone
+                    </button>
+                    <button type="button" id="lidlSiteBtn" class="submit-btn" style="width: auto; padding: 15px 25px; margin: 0; background: #28a745;">
+                        Filling out form on Lidl's site
+                    </button>
                 </div>
-                <div id="fileName" style="margin-top: 10px; font-weight: bold; color: #0050aa;"></div>
             </div>
             
-            <div class="status-message" id="statusMessage"></div>
-            
-            <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                Submit Application
-            </button>
+            <!-- Personal Information Section -->
+            <div id="personalInfoSection" style="display: none;">
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                
+                <!-- CV Upload -->
+                <div class="form-group">
+                    <label for="cvUpload">Upload CV/Resume *</label>
+                    <div class="file-upload" id="fileUpload">
+                        <p>Click to select or drag and drop your CV/Resume</p>
+                        <p><small>Supported formats: PDF, DOC, DOCX (Max 5MB)</small></p>
+                        <input type="file" id="cvUpload" name="cvUpload" accept=".pdf,.doc,.docx" style="display: none;" required>
+                    </div>
+                    <div id="fileName" style="margin-top: 10px; font-weight: bold; color: #0050aa;"></div>
+                </div>
+                
+                <div class="status-message" id="statusMessage"></div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                    Submit Application
+                </button>
+            </div>
         </form>
     </div>
     
@@ -332,26 +347,24 @@
         
         async function loadJobsData() {
             try {
-                const response = await fetch('/lidl_jobs_data.json');
-                if (response.ok) {
-                    jobsData = await response.json();
-                    populateJobTitleFilter();
-                    displayJobs(Object.values(jobsData));
-                } else {
-                    // Fallback: try to load from relative path
-                    const fallbackResponse = await fetch('./lidl_jobs_data.json');
-                    if (fallbackResponse.ok) {
-                        jobsData = await fallbackResponse.json();
-                        populateJobTitleFilter();
-                        displayJobs(Object.values(jobsData));
-                    } else {
-                        throw new Error('Could not load jobs data');
-                    }
+                // Try relative path first (works with HTTP server)
+                let response = await fetch('./lidl_jobs_data.json');
+                if (!response.ok) {
+                    // Fallback to root path
+                    response = await fetch('/lidl_jobs_data.json');
                 }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                jobsData = data; // Store the data in the global variable
+                populateJobTitleFilter(); // Populate the filter after loading data
+                displayJobs(Object.values(jobsData)); // Display all jobs initially
+                return data;
             } catch (error) {
                 console.error('Error loading jobs data:', error);
-                document.getElementById('jobList').innerHTML = 
-                    '<div class="loading">Error loading job positions. Please refresh the page.</div>';
+                document.getElementById('jobTitleFilter').innerHTML = '<option value="">Error loading job positions. Please refresh the page</option>';
+                return null;
             }
         }
         
@@ -440,8 +453,11 @@
             // Show the job details box
             document.getElementById('jobDetailsBox').style.display = 'block';
             
-            // Update form validation
-            updateFormValidation();
+            // Show application method selection
+            document.getElementById('applicationMethodSection').style.display = 'block';
+            
+            // Hide personal info section initially
+            document.getElementById('personalInfoSection').style.display = 'none';
         }
         
         function filterJobs() {
@@ -480,6 +496,21 @@
             document.getElementById('jobTitleFilter').addEventListener('change', filterJobs);
             document.getElementById('jobTitleSearch').addEventListener('input', filterJobs);
             document.getElementById('locationFilter').addEventListener('input', filterJobs);
+            
+            // Application method buttons
+            document.getElementById('applyCallBtn').addEventListener('click', () => {
+                document.getElementById('personalInfoSection').style.display = 'block';
+                document.getElementById('personalInfoSection').scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            document.getElementById('lidlSiteBtn').addEventListener('click', () => {
+                // Open job URL in new tab
+                if (selectedJob && selectedJob.recruiting_url) {
+                    window.open(selectedJob.recruiting_url, '_blank');
+                }
+                // Still show the form in case user wants to come back to ApplyCall option
+                document.getElementById('personalInfoSection').style.display = 'block';
+            });
             
             // File upload functionality
             const fileUpload = document.getElementById('fileUpload');
