@@ -348,7 +348,7 @@
         async function loadJobsData() {
             try {
                 // Use the same ngrok base URL for jobs data
-                let response = await fetch('https://8eab48b70e44.ngrok-free.app/api/jobs', {
+                let response = await fetch('https://applycallinput.ngrok.io/api/jobs', {
                     headers: {
                         'ngrok-skip-browser-warning': 'true'
                     }
@@ -625,7 +625,7 @@
                     formData.append('cvFile', cvFile);
                 }
                 
-                const response = await fetch('https://8eab48b70e44.ngrok-free.app/api/complete-application', {
+                const response = await fetch('https://applycallinput.ngrok.io/api/complete-application', {
                     method: 'POST',
                     mode: 'cors',
                     credentials: 'omit',
