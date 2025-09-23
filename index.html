@@ -637,8 +637,36 @@
             updateFormValidation();
         }
         
+        function setupPhoneNumberCombination() {
+            const countryCodeSelect = document.getElementById('countryCode');
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            const hiddenPhoneInput = document.getElementById('phone');
+            
+            function combinePhoneNumber() {
+                const countryCode = countryCodeSelect.value;
+                let phoneNumber = phoneNumberInput.value.trim();
+                
+                // Remove leading zeros or plus signs from phone number
+                phoneNumber = phoneNumber.replace(/^[+0]+/, '');
+                
+                // Combine country code with phone number
+                const combinedPhone = phoneNumber ? countryCode + phoneNumber : '';
+                hiddenPhoneInput.value = combinedPhone;
+                
+                // Trigger form validation update
+                updateFormValidation();
+            }
+            
+            // Add event listeners
+            countryCodeSelect.addEventListener('change', combinePhoneNumber);
+            phoneNumberInput.addEventListener('input', combinePhoneNumber);
+            
+            // Initial combination
+            combinePhoneNumber();
+        }
+        
         function updateFormValidation() {
-            const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'jobTitle'];
+            const requiredFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'jobTitle'];
             const cvFile = document.getElementById('cvUpload').files[0];
             
             const allFieldsValid = requiredFields.every(fieldId => {
@@ -750,6 +778,13 @@
                 statusMessage.style.display = 'none';
             }, 5000);
         }
+        
+        // Update the DOMContentLoaded event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJobs();
+            setupEventListeners();
+            setupPhoneNumberCombination(); // Add this line
+        });
     </script>
 </body>
 </html>
